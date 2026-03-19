@@ -1,0 +1,133 @@
+@startuml SudokuClassDiagram
+
+class SudokuApp {
+  - game: SudokuGame
+  - renderer: SudokuRenderer
+  - menu_manager: MenuManager
+  - running: bool
+  - last_time_update: float
+  - animating: bool
+  + run()
+  + _handle_events()
+  + _handle_key_press(key: int)
+  + _handle_mouse_down(mouse_pos: Tuple[int, int])
+  + _handle_mouse_up(mouse_pos: Tuple[int, int])
+}
+
+class SudokuGame {
+  - board_provider: BoardProvider
+  - board: Optional[SudokuBoard]
+  - solver: SudokuSolver
+  - state: GameState
+  + start_new_game(difficulty: str)
+  + make_move(x: int, y: int, num: int): bool
+  + solve_instant(): bool
+  + solve_animated(callback: Callable)
+  + is_solvable(): bool
+  + select_cell(x: int, y: int)
+  + deselect_cell()
+}
+
+class SudokuBoard {
+  - grid: List[List[int]]
+  - original: List[List[int]]
+  + is_valid_move(x: int, y: int, num: int): bool
+  + is_complete(): bool
+  + is_original_cell(x: int, y: int): bool
+  + reset()
+  + get_cell(x: int, y: int): int
+  + set_cell(x: int, y: int, value: int)
+  + clear_cell(x: int, y: int)
+}
+
+class SudokuSolver {
+  + find_empty(board: SudokuBoard): Optional[Tuple[int, int]]
+  + solve(board: SudokuBoard): bool
+  + is_solvable(board: SudokuBoard): bool
+}
+
+class GameState {
+  - current_screen: GameScreen
+  - selected_cell: Optional[Tuple[int, int]]
+  - time_elapsed: int
+  - mistakes: int
+  - is_paused: bool
+  - game_over: bool
+  - difficulty: str
+  + select_cell(x: int, y: int)
+  + deselect_cell()
+  + increment_time()
+  + increment_mistakes()
+  + reset()
+}
+
+class SudokuRenderer {
+  - screen_width: int
+  - screen_height: int
+  - screen: pygame.Surface
+  - color_manager: ColorManager
+  - font_manager: FontManager
+  - cell_size: int
+  + draw_intro(game: SudokuGame)
+  + draw_main_menu(game: SudokuGame, mouse_pos: Tuple[int, int])
+  + draw_game_board(game: SudokuGame, mouse_pos: Tuple[int, int])
+  + draw_popup(game: SudokuGame, mouse_pos: Tuple[int, int])
+}
+
+class MenuManager {
+  - screen_width: int
+  - screen_height: int
+  + cursor(text: str, mouse_pos: Tuple[int, int]): bool
+  + get_cell_at_pos(pos: Tuple[int, int]): Optional[Tuple[int, int]]
+}
+
+class BoardProvider {
+  - boards: Dict[str, List[List[List[int]]]]
+  + get_board(difficulty: str): SudokuBoard
+  + count_given_numbers(board_data: List[List[int]]): int
+}
+
+class ColorManager {
+  + get_color(color_name: str): Tuple[int, int, int]
+}
+
+class FontManager {
+  - fonts: Dict[str, pygame.font.Font]
+  + load_font(size: int, bold: bool = False): pygame.font.Font
+}
+
+enum GameScreen {
+  INTRO
+  MAIN_MENU
+  PLAY_MENU
+  GAME_PLAY
+  SOLVER
+  SCORE_BOARD
+}
+
+enum PopUpType {
+  NONE
+  EXIT_CONFIRM
+  AUTO_SOLVE
+}
+
+' Связи между классами
+SudokuApp --> SudokuGame
+SudokuApp --> SudokuRenderer
+SudokuApp --> MenuManager
+
+SudokuGame --> SudokuBoard
+SudokuGame --> SudokuSolver
+SudokuGame --> GameState
+SudokuGame --> BoardProvider
+
+SudokuRenderer --> ColorManager
+SudokuRenderer --> FontManager
+
+GameState --> GameScreen
+GameState --> PopUpType
+
+SudokuSolver --> SudokuBoard
+BoardProvider --> SudokuBoard
+
+@enduml
